@@ -23,13 +23,10 @@ void sht_print_usage()
 }
 int sht_parse_error(const char* parsed, int i, const char* i_name, const char* format, const char* keyword, size_t keyword_n)
 {
-   puts(parsed);
-   for (int j = 0; j < i; j++)
-      putchar(' ');
-   printf("^\n");
-   for (int j = 0; j < i; j++)
-      putchar(' ');
-   printf("%s      ", i_name);
+   fwrite(parsed, 1, i, stdout);
+   printf("%s%c%s%s\n", SHT_RED_HIGHLIGHT, parsed[i], SHT_RESET, parsed + i + 1);
+   printf("%s%s%*s^%s\n", SHT_RED_HIGHLIGHT, SHT_BLINK, i, "", SHT_RESET);
+   printf("%*s%s%s%*s", i, "", i_name, SHT_RESET, SHT_IND_LEVEL, "");
    if (keyword && keyword_n > 0)
    {
       if (format)
@@ -41,7 +38,9 @@ int sht_parse_error(const char* parsed, int i, const char* i_name, const char* f
             if (strncmp("%k", &format[f], 2) == 0)
             {
                fwrite(&format[last_k], 1, f, stdout);
+               printf("%s", SHT_RED_HIGHLIGHT);
                fwrite(keyword, 1, keyword_n, stdout);
+               printf("%s", SHT_RESET);
                last_k = f+2;
                f++;
                matched++;
