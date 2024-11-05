@@ -592,7 +592,7 @@ SHT_WIPE_RET_ERR:
          return 0;
       }
 
-      const char* filename_tag;
+      const char* filename_tag = NULL;
       for (int arg_i = 2; arg_i < argc; arg_i++)
       {
          sht_parse_tag(argv[arg_i], &filename_tag);

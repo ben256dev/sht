@@ -1,5 +1,7 @@
 #pragma once
 
+#include "check.h"
+
 int sht_parse_error(const char* parsed, int i, const char* i_name, const char* format, const char* keyword, size_t keyword_n)
 {
    fwrite(parsed, 1, i, stdout);
@@ -73,6 +75,7 @@ int sht_parse_error(const char* parsed, int i, const char* i_name, const char* f
 
    return 0;
 }
+
 int sht_parse_filename(const char* arg)
 {
    if (arg == NULL)
@@ -93,7 +96,7 @@ int sht_parse_filename(const char* arg)
             dot_found++;
             if (dot_found > 1)
             {
-               if (sht_parse_error(arg, i, "i", "additional '.' found in extension of file \"%s\"\n", arg, i) != 1)
+               if (sht_parse_error(arg, i, "i", "additional '.' found in extension of file \"%k\"\n", arg, i) != 1)
                {
                   fprintf(stderr, "%sError%s: failed to match arguments while printing parse error\n", SHT_RED_HIGHLIGHT, SHT_RESET);
                   return -1;
@@ -119,6 +122,7 @@ int sht_parse_filename(const char* arg)
       }
    }
 }
+
 int sht_parse_tag(const char* arg, const char** keyword_ptr)
 {
    if (arg == NULL)
@@ -172,6 +176,7 @@ int sht_parse_tag(const char* arg, const char** keyword_ptr)
       }
    }
 }
+
 int sht_normalize_files(int force_flag)
 {
    sht_check_complain();
