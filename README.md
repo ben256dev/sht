@@ -188,3 +188,4 @@ acd234175699b3906c5b2d63cb0386d9e0d98e6cad3bb8a1e01e75d004ac879a
 - sht could use a fully-commented header for the sake of providing a well documented interface.
 - sht may only work for Linux and Mac.
 - There's probably something you can come up that needs improved. If so, please make changes.
+- Need ``make uninstall`` or some equivalent
