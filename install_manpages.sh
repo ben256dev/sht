@@ -23,4 +23,4 @@ else
 fi
 
 echo "sht man pages installed successfully"
-mandb
+mandb --user-db
