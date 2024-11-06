@@ -61,7 +61,7 @@ check
 
 unsuck
 
-:   Check every provided filename for non-compliant characters and prompt for automatic rename.
+:   Check local directory for non-compliant characters and prompt for automatic rename.
 
 Plumbing
 --------

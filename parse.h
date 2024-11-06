@@ -216,6 +216,7 @@ int sht_normalize_files(int force_flag)
             force_ent = force_flag = 1;
          if (v[0] == 'q' || v[0] == 'Q')
             exit(EXIT_SUCCESS);
+         //for (int c; (c = getchar()) != '\n' && c != EOF; ) { }
       }
 
       if (force_flag || force_ent)

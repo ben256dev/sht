@@ -9,7 +9,7 @@ _mycontext_complete() {
       status)
          COMPREPLY=($(compgen -W "--recursive" -- "${COMP_WORDS[2]}"))
          ;;
-      store|check|check-tree|wipe|normalize-files)
+      store|check|tree|wipe|hash)
          # Use globbing to list files instead of calling `ls`
          COMPREPLY=($(compgen -W "$(echo *)" -- "${COMP_WORDS[2]}"))
          ;;
@@ -17,11 +17,11 @@ _mycontext_complete() {
       tag )
          COMPREPLY=($(compgen -W "$(ls .sht/tags 2>/dev/null)" -- "${COMP_WORDS[2]}"))
          ;;
-      hash)
+      unsuck)
          COMPREPLY=($(compgen -W "-f --force" -- "${COMP_WORDS[2]}"))
          ;;
       *)
-         COMPREPLY=($(compgen -W "init status store check check-tree wipe normalize-files tag hash" -- "$command"))
+         COMPREPLY=($(compgen -W "init status store check check-tree wipe unsuck tag hash" -- "$command"))
          ;;
    esac
 }
