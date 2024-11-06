@@ -1,3 +1,4 @@
+SHELL :=/bin/bash
 PREFIX ?=/usr/local
 ARCH :=$(shell uname -m)
 OS :=$(shell uname -o)
@@ -103,7 +104,7 @@ blake3-arm: clean-blake3
 # Compile `sht` executable, assuming BLAKE3 is installed
 build-sht: 
 	@gcc sht.c -O3 -o sht -lblake3 -L$(PREFIX)/lib -I$(PREFIX)/include
-	@if [[ $(OS) -eq 'Darwin' ]]; then \
+	@if [ $(OS) = "Darwin" ]; then \
 		install_name_tool -add_rpath $(PREFIX)/lib sht; \
 		install_name_tool -change $(BLAKE3LIB) @rpath/$(BLAKE3LIB) sht; \
 	fi
