@@ -617,7 +617,7 @@ SHT_WIPE_RET_ERR:
    {
       printf("%s: unrecognized command \"%s\"\n", argv[0], argv[1]);
       printf("%*s Try running \"%s%s -h%s\" for help\n",
-            SHT_IND_LEVEL, "", SHT_YELLOW_RECCOMEND, argv[0],           SHT_RESET);
+         SHT_IND_LEVEL, "", SHT_YELLOW_RECCOMEND, argv[0], SHT_RESET);
 
       return 0;
    }

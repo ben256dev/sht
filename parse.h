@@ -1,14 +1,13 @@
 #pragma once
 
+#include "check.h"
+
 int sht_parse_error(const char* parsed, int i, const char* i_name, const char* format, const char* keyword, size_t keyword_n)
 {
-   puts(parsed);
-   for (int j = 0; j < i; j++)
-      putchar(' ');
-   printf("^\n");
-   for (int j = 0; j < i; j++)
-      putchar(' ');
-   printf("%s      ", i_name);
+   fwrite(parsed, 1, i, stdout);
+   printf("%s%c%s%s\n", SHT_RED_HIGHLIGHT, parsed[i], SHT_RESET, parsed + i + 1);
+   printf("%s%s%*s^%s\n", SHT_RED_HIGHLIGHT, SHT_BLINK, i, "", SHT_RESET);
+   printf("%*s%s%s%*s", i, "", i_name, SHT_RESET, SHT_IND_LEVEL, "");
    if (keyword && keyword_n > 0)
    {
       if (format)
@@ -20,14 +19,18 @@ int sht_parse_error(const char* parsed, int i, const char* i_name, const char* f
             if (strncmp("%k", &format[f], 2) == 0)
             {
                fwrite(&format[last_k], 1, f, stdout);
+               printf("%s", SHT_RED_HIGHLIGHT);
                fwrite(keyword, 1, keyword_n, stdout);
+               printf("%s", SHT_RESET);
                last_k = f+2;
                f++;
                matched++;
             }
             else if (format[f] == '%')
             {
-               int spaces_nested = i + strlen(i_name) + 6 + f + 1;
+               char pe_buff[64];
+
+               int spaces_nested = i + strlen(i_name) + SHT_IND_LEVEL + f + 1;
                char* nested_format = malloc(strlen(format) + 1);
                if (nested_format == NULL)
                {
@@ -39,12 +42,13 @@ int sht_parse_error(const char* parsed, int i, const char* i_name, const char* f
                char* ch = strchr(nested_format, '\n');
                if (ch)
                   (*ch) = '\0';
-               sht_parse_error(nested_format, spaces_nested, "f", "Error: Unsupported format specifier\n", 0, 0);
 
-               spaces_nested += 7;
-               for (int s = 0; s < spaces_nested; s++)
-                  putchar(' ');
-               printf("%*s%s", SHT_IND_LEVEL, "", "Try using \"%k\" instead\n");
+               snprintf(pe_buff, 63, "%sError:%s Unsupported format specifier\n", SHT_RED_HIGHLIGHT, SHT_RESET);
+               sht_parse_error(nested_format, spaces_nested, "f", pe_buff, 0, 0);;
+
+               spaces_nested += 1;
+               printf("%*s", spaces_nested, "");
+               printf("%*s%s", SHT_IND_LEVEL + SHT_IND_LEVEL, "", "(try using \"%k\" instead)\n");
                return -1;
             }
          }
@@ -71,6 +75,7 @@ int sht_parse_error(const char* parsed, int i, const char* i_name, const char* f
 
    return 0;
 }
+
 int sht_parse_filename(const char* arg)
 {
    if (arg == NULL)
@@ -93,7 +98,7 @@ int sht_parse_filename(const char* arg)
             {
                if (sht_parse_error(arg, i, "i", "additional '.' found in extension of file \"%k\"\n", arg, i) != 1)
                {
-                  fprintf(stderr, "Error: failed to match arguments while printing parse error\n");
+                  fprintf(stderr, "%sError%s: failed to match arguments while printing parse error\n", SHT_RED_HIGHLIGHT, SHT_RESET);
                   return -1;
                }
                return -1;
@@ -102,7 +107,7 @@ int sht_parse_filename(const char* arg)
          default:
             if (sht_parse_error(arg, i, "i", "Note: file name must only contain alphanumeric or '_'\n", 0, 0) != 1)
             {
-               fprintf(stderr, "Error: failed to match arguments while printing parse error\n");
+               fprintf(stderr, "%sError%s: failed to match arguments while printing parse error\n", SHT_RED_HIGHLIGHT, SHT_RESET);
                return -1;
             }
             fprintf(stderr, "Hi\n");
@@ -117,6 +122,7 @@ int sht_parse_filename(const char* arg)
       }
    }
 }
+
 int sht_parse_tag(const char* arg, const char** keyword_ptr)
 {
    if (arg == NULL)
@@ -170,6 +176,7 @@ int sht_parse_tag(const char* arg, const char** keyword_ptr)
       }
    }
 }
+
 int sht_normalize_files(int force_flag)
 {
    sht_check_complain();

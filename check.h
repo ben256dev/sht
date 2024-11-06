@@ -127,6 +127,7 @@ int sht_determine_sucks(int* sucks_count_ptr)
    for (; ent < file_count; ent++)
    {
       int ent_sucks = 0;
+      int found_valid = 0;
       int i = 0;
       int dot_i = 0;
       char* c = files[ent]->d_name;
@@ -134,9 +135,17 @@ int sht_determine_sucks(int* sucks_count_ptr)
       {
          if (files[ent]->d_type == DT_REG)
          {
-            switch (c[i])
+            char c_val = (isdigit(c[i]) || islower(c[i])) ? 'a' : c[i];
+            switch (c_val)
             {
-               case ' ':
+               case 'a':
+                  if (found_valid == 0)
+                     found_valid = 1;
+                  break;
+               case '.':
+                  dot_i = i;
+                  break;
+               default:
                   if (ent_sucks == 0)
                   {
                      fprintf(to_norm_file, "%s'", files[ent]->d_name);
@@ -145,9 +154,8 @@ int sht_determine_sucks(int* sucks_count_ptr)
                   }
 
                   c[i] = '_';
-                  break;
-               case '.':
-                  dot_i = i;
+                  if (found_valid == 0)
+                     c++;
                   break;
             }
             if (i > 128 && ent_sucks == 0)
