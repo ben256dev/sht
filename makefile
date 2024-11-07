@@ -137,7 +137,7 @@ man/%.3: man/%.3.md
 	$(MANPAGE.md) $< -o $@
 
 .IGNORE: manpages
-manpages: man/sht.1 man/sht_parse_error.3
+manpages: man/sht.1 man/sht-unsuck.1 man/sht-status.1 man/sht_parse_error.3
 	@sh install_manpages.sh
 
 .PHONY: manpages
