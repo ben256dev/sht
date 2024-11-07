@@ -24,6 +24,27 @@ Options
 COMMANDS
 ========
 
+```bash
+Normalize file 'Normie Name.txt' to Normie_Name.txt?
+         [a | Y/n | q]: 
+```
+
+(a)ll, (A)ll
+
+:   Confirms renames and sets force flag to true
+
+(y)es, (Y)es
+
+:   Confirms rename
+
+(n)o, (N)o
+
+:   Skips file without renaming
+
+(q)uit, (Q)uit
+
+:   Exits
+
 BUGS
 ====
 
@@ -37,4 +58,4 @@ Benjamin Blodgett <benjamin@ben256.com>
 SEE ALSO
 ========
 
-**sht_parse_error(1)**
+**sht**(1)

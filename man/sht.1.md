@@ -51,6 +51,9 @@ tag
 
 :   Map given tags onto specified objects with 'filename:foo' tag.
 
+Plumbing
+--------
+
 tree
 
 :   Verify sht repository structure.
@@ -59,24 +62,9 @@ check
 
 :   Show tracking status for specific file.
 
-unsuck
+**sht-unsuck**(1)  
 
 :   Check local directory for non-compliant characters and prompt for automatic rename.
-
-Plumbing
---------
-
-tree
-
-: Verify sht repository structure.
-
-check
-
-: Show tracking status for specific file.
-
-unsuck
-
-: Check every provided filename for non-compliant characters and prompt for automatic rename.
 
 hash
 
@@ -95,4 +83,4 @@ Benjamin Blodgett <benjamin@ben256.com>
 SEE ALSO
 ========
 
-**sht_parse_error(1)**
+**sht-unsuck**(1)

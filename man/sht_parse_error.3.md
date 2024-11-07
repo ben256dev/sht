@@ -75,4 +75,4 @@ Benjamin Blodgett <benjamin@ben256.com>
 SEE ALSO
 ========
 
-**sht(1)**
+**sht**(1)
