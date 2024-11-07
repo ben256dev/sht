@@ -217,6 +217,10 @@ int sht_normalize_files(int force_flag)
             fprintf(stderr, "Error: failed to read validation from user\n");
             goto NORMALIZE_RET_ERROR;
          }
+
+         if (v[strcspn(v, "\n")] != '\n')
+            for (int c; (c = getchar()) != '\n' && c != EOF; ) { }
+
          if (v[0] == 'y' || v[0] == 'Y')
             force_ent = 1;
          if (v[0] == 'a' || v[0] == 'A')
