@@ -182,7 +182,7 @@ acd234175699b3906c5b2d63cb0386d9e0d98e6cad3bb8a1e01e75d004ac879a
 ### Todos
 
 - The ``tags`` branch contains work on the tag system to allow arbitrarily tagging an object with any number of tags.
-- There needs to be a mechanism for setting remotes and uploading objects. Probably with **sftp** and ``libssl2``.
+- There needs to be a mechanism for setting remotes and uploading objects. Probably with **sftp** and ``libssh2``.
 - Work has already been started on ``main`` to search directories recursively for files instead of just ignoring them.
 - In the future, we could support branches, trees and commit objects with a directed graph for version control.
 - sht could use a fully-commented header for the sake of providing a well documented interface.
