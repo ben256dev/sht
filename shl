@@ -1,0 +1,15 @@
+#!/bin/bash
+# /bin/shl
+
+if [[ -z $SHTUSER ]]; then
+    echo "Missing SHTUSER" >&2
+    exit 1
+fi
+
+if [[ -z $SSH_ORIGINAL_COMMAND ]]; then
+    echo "usage: ssh sht@host <command>" >&2
+    exit 1
+fi
+
+cmd=$SSH_ORIGINAL_COMMAND
+echo "received from $SHTUSER: $cmd"
