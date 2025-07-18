@@ -1,15 +1,85 @@
 #!/bin/bash
 # /bin/shl
 
-if [[ -z $SHTUSER ]]; then
+set -euo pipefail
+KEY_FILE="/etc/sht/authorized_keys"
+cmd=${SSH_ORIGINAL_COMMAND:-}
+
+if [[ "$cmd" =~ ^add-key\ ([a-zA-Z0-9_]+)$ ]]; then
+    USERNAME="${BASH_REMATCH[1]}"
+    read -r key
+    if [[ -z $key ]]; then
+        echo "add-key: no key provided" >&2
+        exit 1
+    fi
+
+    stub_line=$(grep -n "^environment=\"SHTUSER=$USERNAME\"" "$KEY_FILE" | grep -v 'ssh-' | head -n 1 | cut -d: -f1)
+
+    if [[ -z "$stub_line" ]]; then
+        echo "add-key: no stub found for user $USERNAME" >&2
+        exit 1
+    fi
+
+    prefix="environment=\"SHTUSER=$USERNAME\""
+    echo "$key" | grep -q '^ssh-' || { echo "add-key: invalid key format" >&2; exit 1; }
+    new_line="$prefix $key"
+
+    tmp=$(mktemp)
+    awk -v line="$stub_line" -v new="$new_line" 'NR==line {$0=new} {print}' "$KEY_FILE" > "$tmp"
+    mv "$tmp" "$KEY_FILE"
+
+    sudo /bin/shl-lpasswd
+    exit 0
+fi
+
+if [[ -z ${SHTUSER:-} ]]; then
     echo "Missing SHTUSER" >&2
     exit 1
 fi
 
-if [[ -z $SSH_ORIGINAL_COMMAND ]]; then
+if [[ -z $cmd ]]; then
     echo "usage: ssh sht@host <command>" >&2
     exit 1
 fi
 
-cmd=$SSH_ORIGINAL_COMMAND
-echo "received from $SHTUSER: $cmd"
+if [[ "$SSH_ORIGINAL_COMMAND" =~ ^email-otp\ ([a-zA-Z0-9_]+)\ ([^[:space:]]+@[^[:space:]]+)$ ]]; then
+    if [[ "$SHTUSER" != "benjamin" ]]; then
+        echo "Unauthorized" >&2
+        exit 1
+    fi
+
+    USERNAME="${BASH_REMATCH[1]}"
+    EMAIL="${BASH_REMATCH[2]}"
+
+    echo "environment=\"SHTUSER=$USERNAME\" " >>"$KEY_FILE"
+
+    OTP=$(sudo /bin/shl-upasswd)
+    echo -e "
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>SSH OTP Mailing</title>
+	<link rel=\"stylesheet\" href=\"https://ben256.com/darkmode.css\">
+        </style>
+    </head>
+    <body>
+        <h1>Register Your Public Key</h1>
+        <p>To register your public key, follow these steps:</p>
+        <pre><code>
+            Run the following command to register your public key:
+            <span style=\"background-color: #f0f0f0; padding: 5px;\">ssh-add -L | ssh sht@home.ben256.com add-key $USERNAME</span>
+        </code></pre>
+        <p>After running this command, you will receive a one-time password (OTP). Please note down the OTP and use it to complete the registration process.</p>
+        <h2>Your One-Time Password (OTP)</h2>
+        <pre><code>
+            The following is your one-time-password which you must paste in after running the above command:
+            <span style=\"background-color: #f0f0f0; padding: 5px;\">$OTP</span>
+        </code></pre>
+        <p>Your OTP has been sent to $EMAIL. Please check your email for further instructions.</p>
+    </body>
+    </html>
+    " | mail -a "Content-Type: text/html" -a "From: noreply@ben256.com" -s "sht OTP for $USERNAME" "$EMAIL"
+
+    echo "OTP sent to $EMAIL"
+    exit 0
+fi

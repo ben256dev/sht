@@ -1,0 +1,3 @@
+#!/bin/bash
+# shl-lpasswd
+passwd -l sht

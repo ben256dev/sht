@@ -1,0 +1,10 @@
+#!/bin/bash
+# shl-upasswd
+
+set -e
+
+LENGTH=128
+OTP=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c $LENGTH)
+
+echo "sht:$OTP" | chpasswd
+echo "$OTP"
