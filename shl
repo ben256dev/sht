@@ -2,84 +2,120 @@
 # /bin/shl
 
 set -euo pipefail
-KEY_FILE="/etc/sht/authorized_keys"
+CONFIG="/etc/sht/sht.conf"
+[[ -f "$CONFIG" ]] && source "$CONFIG" || { echo "Missing config $CONFIG" >&2; exit 1; }
 cmd=${SSH_ORIGINAL_COMMAND:-}
 
-if [[ "$cmd" =~ ^add-key\ ([a-zA-Z0-9_]+)$ ]]; then
-    USERNAME="${BASH_REMATCH[1]}"
+usage() {
+    local BD="\033[1m"
+    local DM="\033[2m"
+    local UN="\033[4m"
+    local RS="\033[0m"
+
+    echo -e "shl usage:"
+    echo -e "   ssh-add -L | ssh sht@shthub.org ${BD}${UN}add-key${RS} <username>"
+    echo -e "         ${DM}copies identity from stdin${RS}"
+    echo -e "   pv file.txt | ssh sht@shthub.org ${BD}${UN}blob${RS}"
+    echo -e "         ${DM}read from stdin and store blob${RS}"
+    echo -e ""
+    echo -e "   ssh sht@shthub.org ${BD}${UN}email-otp${RS} <username> <email>"
+    echo -e "         ${DM}email OTP and add-key steps to user${RS}${RS}"
+    exit 1
+}
+
+send_html_mail() {
+    local subject="$1"
+    local to="$2"
+    local template="$3"
+    shift 3
+    local body
+    body=$(<"$template")
+    # Replace placeholders
+    for pair in "$@"; do
+        key="${pair%%=*}"
+        val="${pair#*=}"
+        body="${body//__${key}__/$val}"
+    done
+    echo "$body" | mail -a "Content-Type: text/html" -a "From: noreply@ben256.com" -s "$subject" "$to"
+}
+
+add_key() {
+    local username="$1"
     read -r key
-    if [[ -z $key ]]; then
-        echo "add-key: no key provided" >&2
-        exit 1
-    fi
-
-    stub_line=$(grep -n "^environment=\"SHTUSER=$USERNAME\"" "$KEY_FILE" | grep -v 'ssh-' | head -n 1 | cut -d: -f1)
-
-    if [[ -z "$stub_line" ]]; then
-        echo "add-key: no stub found for user $USERNAME" >&2
-        exit 1
-    fi
-
-    prefix="environment=\"SHTUSER=$USERNAME\""
-    echo "$key" | grep -q '^ssh-' || { echo "add-key: invalid key format" >&2; exit 1; }
+    [[ -z "$key" ]] && { echo "add-key: no key provided" >&2; exit 1; }
+    stub_line=$(grep -n "^environment=\"SHTUSER=$username\"" "$KEY_FILE" | grep -v 'ssh-' | head -n 1 | cut -d: -f1)
+    [[ -z "$stub_line" ]] && { echo "add-key: no stub found for user $username" >&2; exit 1; }
+    prefix="environment=\"SHTUSER=$username\""
+    [[ "$key" =~ ^ssh- ]] || { echo "add-key: invalid key format" >&2; exit 1; }
     new_line="$prefix $key"
-
     tmp=$(mktemp)
     awk -v line="$stub_line" -v new="$new_line" 'NR==line {$0=new} {print}' "$KEY_FILE" > "$tmp"
     mv "$tmp" "$KEY_FILE"
-
     sudo /bin/shl-lpasswd
-    exit 0
-fi
+}
 
-if [[ -z ${SHTUSER:-} ]]; then
-    echo "Missing SHTUSER" >&2
-    exit 1
-fi
+email_otp() {
+    local username="$1" email="$2"
+    echo "environment=\"SHTUSER=$username\" " >>"$KEY_FILE"
+    OTP=$(sudo /bin/shl-upasswd)
+    send_html_mail \
+        "sht OTP for $username" "$email" "$TEMPLATE_DIR/otp_email.html" \
+        USERNAME="$username" OTP="$OTP" EMAIL="$email"
+    echo "OTP sent to $email"
+}
 
-if [[ -z $cmd ]]; then
-    echo "usage: ssh sht@host <command>" >&2
-    exit 1
-fi
+blob_cmd() {
+    blob_contents=$(cat)
+    hash=$(printf "%s" "$blob_contents" | b3sum | awk '{print $1}')
+    target="$BLOB_DIR/$hash"
+    [[ -f "$target" ]] || printf "%s" "$blob_contents" > "$target"
+    echo "$hash"
+}
 
-if [[ "$SSH_ORIGINAL_COMMAND" =~ ^email-otp\ ([a-zA-Z0-9_]+)\ ([^[:space:]]+@[^[:space:]]+)$ ]]; then
-    if [[ "$SHTUSER" != "benjamin" ]]; then
-        echo "Unauthorized" >&2
+fzfb() {
+    if [[ "${SHTUSER:-}" != "${ADMIN_USER:-benjamin}" ]]; then
+        echo "fzfb: admin only" >&2
         exit 1
     fi
 
-    USERNAME="${BASH_REMATCH[1]}"
-    EMAIL="${BASH_REMATCH[2]}"
+    cd /b
+    selected=$(ls -1 | grep -v '^lost+found$' | fzf)
+    if [[ -n "$selected" ]]; then
+        echo "$selected"
+    else
+        echo "No blob selected"
+    fi
+}
 
-    echo "environment=\"SHTUSER=$USERNAME\" " >>"$KEY_FILE"
+# Main dispatch
 
-    OTP=$(sudo /bin/shl-upasswd)
-    echo -e "
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>SSH OTP Mailing</title>
-	<link rel=\"stylesheet\" href=\"https://ben256.com/darkmode.css\">
-        </style>
-    </head>
-    <body>
-        <h1>Register Your Public Key</h1>
-        <p>To register your public key, follow these steps:</p>
-        <pre><code>
-            Run the following command to register your public key:
-            <span style=\"background-color: #f0f0f0; padding: 5px;\">ssh-add -L | ssh sht@home.ben256.com add-key $USERNAME</span>
-        </code></pre>
-        <p>After running this command, you will receive a one-time password (OTP). Please note down the OTP and use it to complete the registration process.</p>
-        <h2>Your One-Time Password (OTP)</h2>
-        <pre><code>
-            The following is your one-time-password which you must paste in after running the above command:
-            <span style=\"background-color: #f0f0f0; padding: 5px;\">$OTP</span>
-        </code></pre>
-        <p>Your OTP has been sent to $EMAIL. Please check your email for further instructions.</p>
-    </body>
-    </html>
-    " | mail -a "Content-Type: text/html" -a "From: noreply@ben256.com" -s "sht OTP for $USERNAME" "$EMAIL"
+if [[ "$cmd" == "-h" || "$cmd" == "--help" ]]; then
+    usage
+fi
 
-    echo "OTP sent to $EMAIL"
+if [[ "$cmd" =~ ^add-key\ ([a-zA-Z0-9_]+)$ ]]; then
+    add_key "${BASH_REMATCH[1]}"
     exit 0
 fi
+
+[[ -z "${SHTUSER:-}" ]] && { echo "Missing SHTUSER" >&2; exit 1; }
+[[ -z "$cmd" ]] && usage
+
+if [[ "$cmd" =~ ^email-otp\ ([a-zA-Z0-9_]+)\ ([^[:space:]]+@[^[:space:]]+)$ ]]; then
+    [[ "$SHTUSER" == "benjamin" ]] || { echo "Unauthorized" >&2; exit 1; }
+    email_otp "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
+    exit 0
+fi
+
+if [[ "$cmd" =~ ^blob($|\ ) ]]; then
+    blob_cmd
+    exit 0
+fi
+
+if [[ "${SSH_ORIGINAL_COMMAND:-}" =~ ^fzfb$ ]]; then
+    fzfb
+    exit 0
+fi
+
+usage
+exit 1

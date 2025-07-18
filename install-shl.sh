@@ -10,3 +10,10 @@ chown root:root /bin/shl-lpasswd
 cp shl-upasswd /bin/
 sudo chmod 700 /bin/shl-upasswd
 chown root:root /bin/shl-upasswd
+
+sudo mkdir -p /etc/sht
+sudo cp sht.conf /etc/sht
+
+sudo mkdir -p /etc/sht/templates
+sudo cp otp_email.html /etc/sht/templates/otp_email.html
+sudo chown -R sht:sht /etc/sht
