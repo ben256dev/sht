@@ -22,26 +22,31 @@ cd BLAKE3/c
 g++ -c -O3 -fno-exceptions -fno-rtti -DBLAKE3_USE_TBB -o blake3_tbb.o blake3_tbb.cpp
 ```
 
-4. Build the example with multithreading enabled
+4. Compile all C and assembly sources to objects
 
 ```bash
-gcc -O3 -DBLAKE3_USE_TBB -o example_tbb \
-    blake3_tbb.o example_tbb.c blake3.c blake3_dispatch.c blake3_portable.c \
-    blake3_sse2_x86-64_unix.S blake3_sse41_x86-64_unix.S \
-    blake3_avx2_x86-64_unix.S blake3_avx512_x86-64_unix.S \
-    -lstdc++ -ltbb
+gcc -c -O3 -DBLAKE3_USE_TBB -o blake3.o blake3.c
+gcc -c -O3 -DBLAKE3_USE_TBB -o blake3_dispatch.o blake3_dispatch.c
+gcc -c -O3 -DBLAKE3_USE_TBB -o blake3_portable.o blake3_portable.c
+gcc -c -O3 -DBLAKE3_USE_TBB -o blake3_sse2_x86-64_unix.o blake3_sse2_x86-64_unix.S
+gcc -c -O3 -DBLAKE3_USE_TBB -o blake3_sse41_x86-64_unix.o blake3_sse41_x86-64_unix.S
+gcc -c -O3 -DBLAKE3_USE_TBB -o blake3_avx2_x86-64_unix.o blake3_avx2_x86-64_unix.S
+gcc -c -O3 -DBLAKE3_USE_TBB -o blake3_avx512_x86-64_unix.o blake3_avx512_x86-64_unix.S
 ```
 
-5. (Optional) Make a test file
+5. Archive object files into static library
 
 ```bash
-fallocate -l 1G testfile.bin
+ar rcs libblake3_tbb.a blake3_tbb.o blake3.o blake3_dispatch.o blake3_portable.o \
+    blake3_sse2_x86-64_unix.o blake3_sse41_x86-64_unix.o blake3_avx2_x86-64_unix.o blake3_avx512_x86-64_unix.o
 ```
 
-6. Run the example
+6. Use Static Library to build ``sht``
 
 ```bash
-./example_tbb testfile.bin
+cd ../..
+cp BLAKE3/c/libblake3_tbb.a .
+gcc -O3 -o sht sht.c libblake3_tbb.a -lstdc++ -ltbb
 ```
 
 ## SHL

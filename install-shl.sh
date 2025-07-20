@@ -1,4 +1,7 @@
 #!/bin/bash
+cp sht /bin/
+sudo chmod 755 /bin/sht
+
 cp shl /bin/
 sudo chmod 755 /bin/shl
 chown sht:sht /bin/shl

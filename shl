@@ -65,11 +65,31 @@ email_otp() {
 }
 
 blob_cmd() {
-    blob_contents=$(cat)
-    hash=$(printf "%s" "$blob_contents" | b3sum | awk '{print $1}')
-    target="$BLOB_DIR/$hash"
-    [[ -f "$target" ]] || printf "%s" "$blob_contents" > "$target"
-    echo "$hash"
+    local dgst="$1"
+    if [[ -z "$dgst" ]]; then
+        echo "Error: no digest provided" >&2
+        return 1
+    fi
+
+    local target="$BLOB_DIR/$dgst"
+
+    if [[ -f "$target" ]]; then
+        echo "BLOB_EXISTS"
+        return 0
+    fi
+
+    tmpfile=$(mktemp)
+    tee "$tmpfile" | sht | awk '{print $1}' | {
+        read server_hash
+        if [[ "$server_hash" == "$dgst" ]]; then
+            mv "$tmpfile" "$target"
+            echo "STORED"
+        else
+            rm "$tmpfile"
+            echo "HASH_MISMATCH"
+            return 1
+        fi
+    }
 }
 
 fzfb() {
@@ -107,8 +127,9 @@ if [[ "$cmd" =~ ^email-otp\ ([a-zA-Z0-9_]+)\ ([^[:space:]]+@[^[:space:]]+)$ ]]; 
     exit 0
 fi
 
-if [[ "$cmd" =~ ^blob($|\ ) ]]; then
-    blob_cmd
+if [[ "$cmd" =~ ^blob([[:space:]]|$) ]]; then
+    set -- ${cmd#blob }
+    blob_cmd "$@"
     exit 0
 fi
 
