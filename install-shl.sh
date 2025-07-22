@@ -14,9 +14,17 @@ cp shl-upasswd /bin/
 sudo chmod 700 /bin/shl-upasswd
 chown root:root /bin/shl-upasswd
 
+cp shl-mkuser /bin/
+sudo chmod 700 /bin/shl-mkuser
+chown root:root /bin/shl-mkuser
+
 sudo mkdir -p /etc/sht
 sudo cp sht.conf /etc/sht
 
 sudo mkdir -p /etc/sht/templates
 sudo cp otp_email.html /etc/sht/templates/otp_email.html
+
+sudo mkdir -p /etc/sht/users
+
 sudo chown -R sht:sht /etc/sht
+

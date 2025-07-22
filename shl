@@ -41,6 +41,9 @@ send_html_mail() {
 
 add_key() {
     local username="$1"
+
+    sudo shl-mkuser
+
     read -r key
     [[ -z "$key" ]] && { echo "add-key: no key provided" >&2; exit 1; }
     stub_line=$(grep -n "^environment=\"SHTUSER=$username\"" "$KEY_FILE" | grep -v 'ssh-' | head -n 1 | cut -d: -f1)
@@ -51,13 +54,13 @@ add_key() {
     tmp=$(mktemp)
     awk -v line="$stub_line" -v new="$new_line" 'NR==line {$0=new} {print}' "$KEY_FILE" > "$tmp"
     mv "$tmp" "$KEY_FILE"
-    sudo /bin/shl-lpasswd
+    sudo shl-lpasswd
 }
 
 email_otp() {
     local username="$1" email="$2"
     echo "environment=\"SHTUSER=$username\" " >>"$KEY_FILE"
-    OTP=$(sudo /bin/shl-upasswd)
+    OTP=$(sudo shl-upasswd)
     send_html_mail \
         "sht OTP for $username" "$email" "$TEMPLATE_DIR/otp_email.html" \
         USERNAME="$username" OTP="$OTP" EMAIL="$email"

@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <gmp.h>
 
-#define BUF_SIZE (16 * 1024 * 1024) // 16MB for stdin
+#define BUF_SIZE (16 * 1024 * 1024)
 #define pdie(msg) do { perror(msg); return 1; } while (0)
 
 static const char base64_lookup[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
