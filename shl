@@ -15,8 +15,9 @@ usage() {
     echo -e "shl usage:"
     echo -e "   ssh-add -L | ssh sht@shthub.org ${BD}${UN}add-key${RS} <username>"
     echo -e "         ${DM}copies identity from stdin${RS}"
-    echo -e "   pv file.txt | ssh sht@shthub.org ${BD}${UN}blob${RS}"
-    echo -e "         ${DM}read from stdin and store blob${RS}"
+    echo -e "   pv file.txt | ssh sht@shthub.org ${BD}${UN}up${RS} [-o <filename>]"
+    echo -e "         ${DM}read from stdin and store file${RS}"
+    echo -e "         ${DM}-o <filename> flag to store under shthub.org/user/filename${RS}"
     echo -e ""
     echo -e "   ssh sht@shthub.org ${BD}${UN}email-otp${RS} <username> <email>"
     echo -e "         ${DM}email OTP and add-key steps to user${RS}${RS}"
@@ -37,6 +38,8 @@ send_html_mail() {
         body="${body//__${key}__/$val}"
     done
     echo "$body" | mail -a "Content-Type: text/html" -a "From: noreply@ben256.com" -s "$subject" "$to"
+
+    return 0
 }
 
 add_key() {
@@ -55,6 +58,8 @@ add_key() {
     awk -v line="$stub_line" -v new="$new_line" 'NR==line {$0=new} {print}' "$KEY_FILE" > "$tmp"
     mv "$tmp" "$KEY_FILE"
     sudo shl-lpasswd
+
+    return 0
 }
 
 email_otp() {
@@ -65,34 +70,25 @@ email_otp() {
         "sht OTP for $username" "$email" "$TEMPLATE_DIR/otp_email.html" \
         USERNAME="$username" OTP="$OTP" EMAIL="$email"
     echo "OTP sent to $email"
+
+    return 0
 }
 
-blob_cmd() {
+up_cmd() {
     local dgst="$1"
-    if [[ -z "$dgst" ]]; then
-        echo "Error: no digest provided" >&2
-        return 1
-    fi
+    [[ -z "$dgst" ]] && \
+        { echo "up_cmd: no digest provided" >&2; return 1; }
 
     local target="$BLOB_DIR/$dgst"
-
-    if [[ -f "$target" ]]; then
-        echo "BLOB_EXISTS"
-        return 0
-    fi
+    [[ -f "$target" ]] && \
+        { echo "$dgst"; return 0; }
 
     tmpfile=$(mktemp)
-    tee "$tmpfile" | sht | awk '{print $1}' | {
-        read server_hash
-        if [[ "$server_hash" == "$dgst" ]]; then
-            mv "$tmpfile" "$target"
-            echo "STORED"
-        else
-            rm "$tmpfile"
-            echo "HASH_MISMATCH"
-            return 1
-        fi
-    }
+    dgst_server=$(tee "$tmpfile" | sht)
+    [[ "$dgst_server" == "$dgst" ]] && \
+        { mv "$tmpfile" "$target"; echo "$dgst"; return 0; }
+
+    { rm "$tmpfile"; echo "up_cmd: digest mismatch" >&2; echo "server: $dgst_server, client: $dgst" >&2; return 1; }
 }
 
 fzfb() {
@@ -106,11 +102,11 @@ fzfb() {
     if [[ -n "$selected" ]]; then
         echo "$selected"
     else
-        echo "No blob selected"
+        echo "No file selected"
     fi
-}
 
-# Main dispatch
+    return 0
+}
 
 if [[ "$cmd" == "-h" || "$cmd" == "--help" ]]; then
     usage
@@ -130,9 +126,41 @@ if [[ "$cmd" =~ ^email-otp\ ([a-zA-Z0-9_]+)\ ([^[:space:]]+@[^[:space:]]+)$ ]]; 
     exit 0
 fi
 
-if [[ "$cmd" =~ ^blob([[:space:]]|$) ]]; then
-    set -- ${cmd#blob }
-    blob_cmd "$@"
+if [[ "$cmd" =~ ^up([[:space:]]|$) ]]; then
+    set -- ${cmd#up }
+
+    dgst=""
+    out_files=()
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -o)
+                shift
+                [[ $# -lt 1 ]] && { echo "up-cmd: -o needs a filename" >&2; exit 1; }
+                out_files+=("$1")
+                ;;
+            -*)
+                echo "up-cmd: unknown flag $1" >&2
+                exit 1
+                ;;
+            *)
+                [[ -z "$dgst" ]] && dgst="$1" || {
+                    echo "up-cmd: multiple digests provided ($dgst and $1)" >&2
+                    exit 1
+                }
+                ;;
+        esac
+        shift
+    done
+
+    [[ -z "$dgst" ]] && { echo "up-cmd: missing digest" >&2; exit 1; }
+
+    dgst_out=$(up_cmd "$dgst") || exit 1
+
+    for f in "${out_files[@]}"; do
+        sudo shl-mkalias "$SHTUSER" "$dgst_out" "$f" || exit 1
+    done
+
     exit 0
 fi
 

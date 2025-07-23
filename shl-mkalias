@@ -1,0 +1,7 @@
+#!/bin/bash
+# shl-mkalias
+username=$1
+dgst=$2
+filename=$3
+
+echo $dgst >>/etc/sht/users/$username/$filename || exit 1

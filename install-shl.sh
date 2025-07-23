@@ -6,17 +6,14 @@ cp shl /bin/
 sudo chmod 755 /bin/shl
 chown sht:sht /bin/shl
 
-cp shl-lpasswd /bin/
-sudo chmod 700 /bin/shl-lpasswd
-chown root:root /bin/shl-lpasswd
+for f in shl-lpasswd shl-upasswd shl-mkuser shl-mkalias; do
+    cp $f /bin/
+    sudo chmod 700 /bin/$f
+    chown root:root /bin/$f
+done
 
-cp shl-upasswd /bin/
-sudo chmod 700 /bin/shl-upasswd
-chown root:root /bin/shl-upasswd
-
-cp shl-mkuser /bin/
-sudo chmod 700 /bin/shl-mkuser
-chown root:root /bin/shl-mkuser
+sudo cp sudoers /etc/sudoers.d/sht 
+chown root:root /etc/sudoers.d/sht
 
 sudo mkdir -p /etc/sht
 sudo cp sht.conf /etc/sht
