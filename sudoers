@@ -1,1 +1,1 @@
-sht ALL=(ALL) NOPASSWD: /bin/shl-mkalias, /bin/shl-mkuser, /bin/shl-lpasswd, /bin/shl-upasswd
+sht ALL=(ALL) NOPASSWD: /bin/shl-mkalias, /bin/shl-mkuser, /bin/shl-lpasswd, /bin/shl-upasswd, /bin/shl-resolve

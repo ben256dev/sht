@@ -169,5 +169,23 @@ if [[ "${SSH_ORIGINAL_COMMAND:-}" =~ ^fzfb$ ]]; then
     exit 0
 fi
 
+if [[ "${SSH_ORIGINAL_COMMAND:-}" =~ ^down([[:space:]].*)?$ ]]; then
+    set -- ${SSH_ORIGINAL_COMMAND#down}
+
+    if [[ $# -eq 1 ]]; then
+        user="$SHTUSER"
+        alias="$1"
+    elif [[ $# -eq 2 ]]; then
+        user="$1"
+        alias="$2"
+    else
+        echo "shl-down: usage: down [user] <alias>" >&2
+        exit 1
+    fi
+
+    sudo shl-resolve "/b" "$user" "$alias"
+    exit 0
+fi
+
 usage
 exit 1

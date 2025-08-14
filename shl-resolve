@@ -1,0 +1,19 @@
+#!/bin/bash
+# shl-resolve
+
+set -euo pipefail
+
+blob_dir="$1"
+user="$2"
+alias="$3"
+
+alias_path="/etc/sht/users/$user/$alias"
+
+[[ -f "$alias_path" ]] || { echo "shl-resolve: alias \"$alias_path\" not found" >&2; exit 1; }
+
+digest=$(head -n 1 -- "$alias_path")
+blob_path="$blob_dir/$digest"
+
+[[ -f "$blob_path" ]] || { echo "shl-resolve: blob \"$blob_path\" not found" >&2; exit 1; }
+
+cat -- "$blob_path"

@@ -6,7 +6,7 @@ cp shl /bin/
 sudo chmod 755 /bin/shl
 chown sht:sht /bin/shl
 
-for f in shl-lpasswd shl-upasswd shl-mkuser shl-mkalias; do
+for f in shl-lpasswd shl-upasswd shl-mkuser shl-mkalias shl-resolve; do
     cp $f /bin/
     sudo chmod 700 /bin/$f
     chown root:root /bin/$f

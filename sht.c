@@ -22,14 +22,29 @@ int hash_fd(int fd) {
     blake3_hasher hasher;
     blake3_hasher_init(&hasher);
 
-    if (S_ISREG(statbuf.st_mode)) {
+    if (statbuf.st_size == 0)
+    {
+        puts("rxNJufX5oaagQE3qNtzJSZvLJcmtwRK3zJqTyuQfMmIA");
+        return 0;
+    }
+
+    if (statbuf.st_size < 0)
+    {
+        fprintf(stderr, "sht_error: statbuf.st_size < 0!");
+        return 1;
+    }
+
+    if (S_ISREG(statbuf.st_mode))
+    {
         void *mapped = mmap(NULL, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
         if (mapped == MAP_FAILED)
             pdie("mmap");
         blake3_hasher_update_tbb(&hasher, mapped, statbuf.st_size);
         if (munmap(mapped, statbuf.st_size) == -1)
             pdie("munmap");
-    } else {
+    }
+    else
+    {
         uint8_t *buf = (uint8_t*)malloc(BUF_SIZE);
         if (!buf) pdie("malloc");
         ssize_t n;
@@ -55,13 +70,15 @@ int hash_fd(int fd) {
     return 0;
 }
 
-int main(int argc, char **argv) {
-    if (argc == 1) {
+int main(int argc, char **argv)
+{
+    if (argc == 1)
         return hash_fd(STDIN_FILENO);
-    }
 
-    for (int i = 1; i < argc; i++) {
-        if (argv[i][0] == '-') {
+    for (int i = 1; i < argc; i++)
+    {
+        if (argv[i][0] == '-')
+        {
             fprintf(stderr, "Unknown option: %s\n", argv[i]);
             return 1;
         }
