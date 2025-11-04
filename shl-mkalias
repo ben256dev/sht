@@ -1,7 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shl-mkalias
-username=$1
-dgst=$2
-filename=$3
 
-echo $dgst >>/etc/sht/users/$username/$filename || exit 1
+set -euo pipefail
+ALIAS_DIR="${ALIAS_DIR:-/etc/sht/users}"
+re_user='^[A-Za-z0-9_]{1,32}$'
+re_alias='^[A-Za-z0-9._-]{1,128}$'
+re_dgst='^[A-Za-z0-9._-]{16,128}$'
+user="$1"
+dgst="$2"
+alias="$3"
+[[ "$user" =~ $re_user ]] || { echo "bad user" >&2; exit 1; }
+[[ "$alias" =~ $re_alias ]] || { echo "bad alias" >&2; exit 1; }
+[[ "$dgst" =~ $re_dgst ]] || { echo "bad digest" >&2; exit 1; }
+dir="$ALIAS_DIR/$user"
+file="$dir/$alias"
+mkdir -p "$dir"
+touch "$file"
+last="$(tail -n 1 -- "$file" || true)"
+if [[ "$last" != "$dgst" ]]; then
+    printf '%s\n' "$dgst" >>"$file"
+fi
+

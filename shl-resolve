@@ -1,19 +1,43 @@
-#!/bin/bash
-# shl-resolve
+#!/usr/bin/env bash
+# shl-resolve-path
 
 set -euo pipefail
-
+mode="bytes"
+if [[ "${1:-}" == "--path" ]]; then
+    mode="path"
+    shift
+fi
 blob_dir="$1"
 user="$2"
 alias="$3"
+ver="${4:-}"
+ALIAS_DIR="${ALIAS_DIR:-/etc/sht/users}"
+re_user='^[A-Za-z0-9_]{1,32}$'
+re_alias='^[A-Za-z0-9._-]{1,128}$'
+re_ver='^[A-Za-z0-9._-]{1,128}$'
+[[ "$user" =~ $re_user ]] || { echo "bad user" >&2; exit 1; }
+[[ "$alias" =~ $re_alias ]] || { echo "bad alias" >&2; exit 1; }
+file="$ALIAS_DIR/$user/$alias"
+[[ -f "$file" ]] || { echo "alias not found" >&2; exit 1; }
+digest=""
+if [[ -z "$ver" ]]; then
+    digest="$(tail -n 1 -- "$file" | tr -d '\n')"
+else
+    [[ "$ver" =~ $re_ver ]] || { echo "bad version" >&2; exit 1; }
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        if [[ "$line" == "$ver"* ]]; then
+            digest="$line"
+            break
+        fi
+    done <"$file"
+fi
+[[ -n "$digest" ]] || { echo "version not found" >&2; exit 1; }
+blob="$blob_dir/$digest"
+[[ -f "$blob" ]] || { echo "blob not found" >&2; exit 1; }
+if [[ "$mode" == "path" ]]; then
+    printf '%s\n' "$blob"
+else
+    cat -- "$blob"
+fi
 
-alias_path="/etc/sht/users/$user/$alias"
-
-[[ -f "$alias_path" ]] || { echo "shl-resolve: alias \"$alias_path\" not found" >&2; exit 1; }
-
-digest=$(head -n 1 -- "$alias_path")
-blob_path="$blob_dir/$digest"
-
-[[ -f "$blob_path" ]] || { echo "shl-resolve: blob \"$blob_path\" not found" >&2; exit 1; }
-
-cat -- "$blob_path"

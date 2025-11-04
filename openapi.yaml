@@ -1,0 +1,159 @@
+openapi: 3.1.0
+info:
+    title: SHTHub Read API
+    version: 1.0.0
+servers:
+    - url: https://shthub.org
+paths:
+    /healthz:
+        get:
+            operationId: healthz
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                '503':
+                    description: Unhealthy
+    /u/{user}/{alias}:
+        get:
+            operationId: getAlias
+            parameters:
+                - name: user
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      pattern: '^[A-Za-z0-9_]{1,32}$'
+                - name: alias
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      pattern: '^[A-Za-z0-9._-]{1,128}$'
+                - name: raw
+                  in: query
+                  allowEmptyValue: true
+                  schema:
+                      type: boolean
+                - name: html
+                  in: query
+                  allowEmptyValue: true
+                  schema:
+                      type: boolean
+                - name: download
+                  in: query
+                  allowEmptyValue: true
+                  schema:
+                      type: boolean
+                - name: v
+                  in: query
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        text/html:
+                            schema:
+                                type: string
+                        '*/*':
+                            schema:
+                                type: string
+                                format: binary
+                '301':
+                    description: Canonical redirect
+                    headers:
+                        Location:
+                            schema:
+                                type: string
+                '400':
+                    description: Bad request
+                '404':
+                    description: Not found
+                '410':
+                    description: Gone
+        head:
+            operationId: headAlias
+            parameters:
+                - name: user
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      pattern: '^[A-Za-z0-9_]{1,32}$'
+                - name: alias
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      pattern: '^[A-Za-z0-9._-]{1,128}$'
+                - name: raw
+                  in: query
+                  allowEmptyValue: true
+                  schema:
+                      type: boolean
+                - name: html
+                  in: query
+                  allowEmptyValue: true
+                  schema:
+                      type: boolean
+                - name: download
+                  in: query
+                  allowEmptyValue: true
+                  schema:
+                      type: boolean
+                - name: v
+                  in: query
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: OK
+                '301':
+                    description: Canonical redirect
+                    headers:
+                        Location:
+                            schema:
+                                type: string
+                '400':
+                    description: Bad request
+                '404':
+                    description: Not found
+    /b/{digest}:
+        head:
+            operationId: headBlob
+            parameters:
+                - name: digest
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      pattern: '^[A-Za-z0-9._-]{16,128}$'
+            responses:
+                '200':
+                    description: OK
+                '404':
+                    description: Not found
+        get:
+            operationId: getBlob
+            parameters:
+                - name: digest
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      pattern: '^[A-Za-z0-9._-]{16,128}$'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        '*/*':
+                            schema:
+                                type: string
+                                format: binary
+                '404':
+                    description: Not found
+
