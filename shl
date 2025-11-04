@@ -76,19 +76,32 @@ email_otp() {
 
 up_cmd() {
     local dgst="$1"
-    [[ -z "$dgst" ]] && \
-        { echo "up_cmd: no digest provided" >&2; return 1; }
+    [[ -z "$dgst" ]] && { echo "up_cmd: no digest provided" >&2; return 1; }
 
     local target="$BLOB_DIR/$dgst"
-    [[ -f "$target" ]] && \
-        { echo "$dgst"; return 0; }
+    local tmpfile
+    tmpfile="$(mktemp)"
 
-    tmpfile=$(mktemp)
-    dgst_server=$(tee "$tmpfile" | sht)
-    [[ "$dgst_server" == "$dgst" ]] && \
-        { mv "$tmpfile" "$target"; echo "$dgst"; return 0; }
+    tee "$tmpfile" >/dev/null
+    local dgst_server
+    dgst_server="$(sht "$tmpfile")"
 
-    { rm "$tmpfile"; echo "up_cmd: digest mismatch" >&2; echo "server: $dgst_server, client: $dgst" >&2; return 1; }
+    if [[ "$dgst_server" != "$dgst" ]]; then
+        rm -f "$tmpfile"
+        echo "up_cmd: digest mismatch" >&2
+        echo "server: $dgst_server, client: $dgst" >&2
+        return 1
+    fi
+
+    if [[ -f "$target" ]]; then
+        rm -f "$tmpfile"
+        echo "$dgst"
+        return 0
+    fi
+
+    install -m 0644 "$tmpfile" "$target"
+    echo "$dgst"
+    return 0
 }
 
 fzfb() {
