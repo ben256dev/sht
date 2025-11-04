@@ -1,0 +1,20 @@
+[Unit]
+Description=SHT Read API
+After=network.target
+
+[Service]
+EnvironmentFile=/srv/sht/etc/sht-api.env
+ExecStart=/srv/sht/bin/sht-api
+WorkingDirectory=/srv/sht
+Restart=always
+RestartSec=2
+User=www-data
+Group=www-data
+NoNewPrivileges=yes
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+

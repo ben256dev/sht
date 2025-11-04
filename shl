@@ -1,5 +1,5 @@
 #!/bin/bash
-# /bin/shl
+#/bin/shl
 
 set -euo pipefail
 CONFIG="/etc/sht/sht.conf"
