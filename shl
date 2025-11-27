@@ -169,10 +169,17 @@ if [[ "$cmd" =~ ^up([[:space:]]|$) ]]; then
     [[ -z "$dgst" ]] && { echo "up-cmd: missing digest" >&2; exit 1; }
 
     dgst_out=$(up_cmd "$dgst") || exit 1
+    base="${SHT_BASE_URL:-https://shthub.org}"
 
-    for f in "${out_files[@]}"; do
-        sudo shl-mkalias "$SHTUSER" "$dgst_out" "$f" || exit 1
-    done
+    if [[ "${#out_files[@]}" -eq 0 ]]; then
+        echo "${base}/b/${dgst_out}"
+    else
+        for f in "${out_files[@]}"; do
+            sudo shl-mkalias "$SHTUSER" "$dgst_out" "$f" || exit 1
+            echo "${base}/u/${SHTUSER}/${f}?raw"
+            echo "${base}/u/${SHTUSER}/${f}?html"
+        done
+    fi
 
     exit 0
 fi
