@@ -1,0 +1,71 @@
+#!/bin/bash
+set -euo pipefail
+
+CONFIG="${SHT_CLIENT_CONFIG:-$HOME/.config/sht/client.conf}"
+if [ -f "$CONFIG" ]; then
+    . "$CONFIG"
+fi
+
+SHT_SSH_TARGET="${SHT_SSH_TARGET:-sht@home.ben256.com}"
+SHT_SSH_OPTS="${SHT_SSH_OPTS:-}"
+
+usage() {
+    echo "usage:" >&2
+    echo "  shh hash [file]" >&2
+    echo "  shh up [-o alias] file" >&2
+    echo "  shh help" >&2
+    exit 1
+}
+
+cmd="${1:-}"
+if [ -z "$cmd" ]; then
+    usage
+fi
+shift
+
+case "$cmd" in
+    hash)
+        if [ $# -eq 0 ]; then
+            sht
+        elif [ $# -eq 1 ]; then
+            sht "$1"
+        else
+            usage
+        fi
+        ;;
+    up)
+        alias_name=""
+        file=""
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                -o)
+                    shift
+                    [ $# -gt 0 ] || usage
+                    alias_name="$1"
+                    ;;
+                -*)
+                    usage
+                    ;;
+                *)
+                    file="$1"
+                    ;;
+            esac
+            shift
+        done
+        [ -n "$file" ] || usage
+        dgst="$(sht "$file" | tr -d '\n')"
+        if [ -n "$alias_name" ]; then
+            alias_arg="-o $alias_name"
+        else
+            alias_arg=""
+        fi
+        pv "$file" | ssh $SHT_SSH_OPTS "$SHT_SSH_TARGET" -- "up $dgst $alias_arg"
+        ;;
+    help|-h|--help)
+        usage
+        ;;
+    *)
+        usage
+        ;;
+esac
+
