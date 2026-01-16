@@ -2,3 +2,4 @@ sht
 *.a
 BLAKE3/
 go.sum
+*.swp

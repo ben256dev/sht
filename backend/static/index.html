@@ -1,0 +1,99 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>shthub.org</title>
+        <link rel="stylesheet" href="/style.css">
+        <link rel="icon" href="data:,">
+    </head>
+    <body>
+        <header class="site-header">
+            <div class="container header-inner">
+                <a class="site-name" href="/">shthub.org</a>
+
+                <nav class="header-nav" aria-label="Header navigation">
+                    <a class="icon-link" href="#" target="_blank" rel="noreferrer" aria-label="GitHub repository">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 .5C5.73.5.75 5.62.75 12c0 5.12 3.3 9.46 7.87 10.99.58.11.8-.26.8-.57v-2.04c-3.2.71-3.87-1.57-3.87-1.57-.52-1.35-1.28-1.71-1.28-1.71-1.05-.73.08-.72.08-.72 1.16.08 1.77 1.22 1.77 1.22 1.03 1.8 2.7 1.28 3.36.98.1-.77.4-1.28.73-1.57-2.55-.3-5.23-1.31-5.23-5.84 0-1.29.45-2.35 1.2-3.18-.12-.3-.52-1.52.11-3.16 0 0 .98-.32 3.21 1.21.93-.26 1.93-.39 2.92-.39.99 0 1.99.13 2.92.39 2.23-1.53 3.21-1.21 3.21-1.21.63 1.64.23 2.86.11 3.16.75.83 1.2 1.89 1.2 3.18 0 4.54-2.69 5.54-5.25 5.83.41.37.78 1.09.78 2.2v3.27c0 .31.21.68.81.57 4.57-1.53 7.86-5.87 7.86-10.99C23.25 5.62 18.27.5 12 .5z"></path>
+                        </svg>
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="container">
+            <section class="hero">
+                <h1>SHT</h1>
+                <p class="muted">
+                    A tiny content-addressed blob store with named aliases.
+                </p>
+
+                <div class="card">
+                    <h2>Install</h2>
+                    <p class="muted">
+                        This is a placeholder install flow for now.
+                    </p>
+                    <pre class="code"><code>curl -fsSL https://shthub.org/bin/install-shh.sh | bash</code></pre>
+                </div>
+            </section>
+
+            <section class="grid">
+                <div class="card">
+                    <h2>URLs</h2>
+                    <ul class="list">
+                        <li>
+                            <span class="kbd">/u/&lt;user&gt;/&lt;alias&gt;?raw</span>
+                            <span class="muted">view raw</span>
+                        </li>
+                        <li>
+                            <span class="kbd">/u/&lt;user&gt;/&lt;alias&gt;?html</span>
+                            <span class="muted">render to HTML</span>
+                        </li>
+                        <li>
+                            <span class="kbd">/b/&lt;digest&gt;</span>
+                            <span class="muted">fetch exact blob</span>
+                        </li>
+                        <li>
+                            <span class="kbd">/healthz</span>
+                            <span class="muted">health check</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2>Examples</h2>
+                    <pre class="code"><code>https://shthub.org/u/benjamin/go.mod?raw
+https://shthub.org/u/benjamin/go.mod?html
+https://shthub.org/b/nI8PzFREgDLwvTU8c7GOwvmYUXKZkJG_2OiEFvrEpUQA</code></pre>
+                </div>
+
+                <div class="card">
+                    <h2>Client usage</h2>
+                    <pre class="code"><code>shh up -o go.mod go.mod
+shh url go.mod</code></pre>
+                    <p class="muted">
+                        Uploads a file, records a new version under the alias, and prints shareable links.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h2>Notes</h2>
+                    <ul class="list">
+                        <li><span class="muted">Aliases can have multiple versions (append-only list of digests).</span></li>
+                        <li><span class="muted">A digest is the content identifier.</span></li>
+                        <li><span class="muted">Use</span> <span class="kbd">?raw</span> <span class="muted">for inline viewing.</span></li>
+                    </ul>
+                </div>
+            </section>
+
+            <footer class="site-footer">
+                <div class="muted">
+                    shthub.org
+                </div>
+            </footer>
+        </main>
+    </body>
+</html>
+
