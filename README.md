@@ -57,6 +57,8 @@ sudo install -m 0755 ./sht /usr/local/bin/sht
 
 ## SHL
 
+> This section is for setting up a SHT server using the SHL shell
+
 1. Create a shared authorized_keys file
 
 ```bash
