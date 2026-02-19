@@ -152,6 +152,10 @@ if [[ "$cmd" =~ ^up([[:space:]]|$) ]]; then
                 [[ $# -lt 1 ]] && { echo "up-cmd: -o needs a filename" >&2; exit 1; }
                 out_files+=("$1")
                 ;;
+            --)
+                shift
+                break
+                ;;
             -*)
                 echo "up-cmd: unknown flag $1" >&2
                 exit 1
@@ -163,6 +167,14 @@ if [[ "$cmd" =~ ^up([[:space:]]|$) ]]; then
                 }
                 ;;
         esac
+        shift
+    done
+
+    while [[ $# -gt 0 ]]; do
+        [[ -z "$dgst" ]] && dgst="$1" || {
+            echo "up-cmd: multiple digests provided ($dgst and $1)" >&2
+            exit 1
+        }
         shift
     done
 
